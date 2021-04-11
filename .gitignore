@@ -1,0 +1,4 @@
+.vs
+CustomSpawner/obj
+packages/
+CustomSpawner/packages.config
