@@ -25,7 +25,6 @@ namespace CustomSpawner
 			Exiled.Events.Handlers.Player.Verified += Handler.OnVerified;
 			Exiled.Events.Handlers.Server.RoundStarted += Handler.OnRoundStart;
 			Exiled.Events.Handlers.Server.WaitingForPlayers += Handler.OnWaitingForPlayers;
-			Exiled.Events.Handlers.Server.EndingRound += Handler.OnEndingRound;
 			base.OnEnabled();
 		}
 
@@ -34,7 +33,6 @@ namespace CustomSpawner
 			Exiled.Events.Handlers.Player.Verified -= Handler.OnVerified;
 			Exiled.Events.Handlers.Server.RoundStarted -= Handler.OnRoundStart;
 			Exiled.Events.Handlers.Server.WaitingForPlayers -= Handler.OnWaitingForPlayers;
-			Exiled.Events.Handlers.Server.EndingRound -= Handler.OnEndingRound;
 
 			Handler = null;
 			base.OnDisabled();

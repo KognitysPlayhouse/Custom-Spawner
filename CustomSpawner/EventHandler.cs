@@ -392,17 +392,6 @@ namespace CustomSpawner
 			}
 		}
 
-		public void OnEndingRound(EndingRoundEventArgs ev)
-		{
-			teamrespawncopy = null;
-			
-			// Just in case
-			SCPsToSpawn = 0;
-			ClassDsToSpawn = 0;
-			ScientistsToSpawn = 0;
-			GuardsToSpawn = 0;
-		}
-
 		private IEnumerator<float> LobbyTimer()
 		{
 			StringBuilder message = new StringBuilder();
