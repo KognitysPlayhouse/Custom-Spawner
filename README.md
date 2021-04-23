@@ -5,7 +5,7 @@
 
 https://www.youtube.com/watch?v=2gE_QsWnltM
 
-This plugin requires a litte more effort than just dragging it in and calling it a day. There are 2 parts to this Server config and Plugin config, which will be described below. It is also likely going to have conflicts and not be outright compatible with several other plugins. Let me know which ones aren't compatible and which ones are in your testing and I'll add them in the list below.
+This plugin likely is going to have conflicts and not be outright compatible with several other plugins. Let me know which ones aren't compatible and which ones are in your testing and I'll add them in the list below.
 
 # Plugin setup:
 1. Change your team_respawn_queue server config located at config_gameplay.txt to your liking.
