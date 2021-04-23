@@ -33,3 +33,4 @@ _**Once again it is brutally important to ensure that the total number is equal 
 
 # List of incompatible plugins
 1. Wait and Chill
+2. RainbowWaitingMessage 
