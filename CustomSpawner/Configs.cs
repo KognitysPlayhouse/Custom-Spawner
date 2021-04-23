@@ -9,9 +9,6 @@ namespace CustomSpawner
 		[Description("If the plugin is enabled or not.")]
 		public bool IsEnabled { get; set; } = true;
 
-		[Description("The Spawn Queue (4: Class D, 0: SCP, 1: Guard, 3: Scientist) IMPORTANT THE LENGTH MATCHES YOUR MAX PLAYER COUNT!")]
-		public List<char> SpawnQueue { get; set; } = new List<char>{ '4', '0', '1', '4', '3', '1', '4', '0', '3', '1', '4', '4', '1', '4', '0', '4', '1', '3', '4', '0', '3', '1', '4', '4', '1', '4', '0', '4', '1', '3', '0', '4', '4', '1', '0', '1', '4', '3', '3', '1' };
-
 		[Description("Upper text shown to the user")]
 		public string UpperText { get; set; } = "Welcome to the Server!";
 
@@ -20,5 +17,8 @@ namespace CustomSpawner
 
 		[Description("Your discord group invite")]
 		public string DiscordInvite { get; set; } = "discord.gg/kognity";
+
+		[Description("If you want a Broadcast to show the class that the player will vote as when they're standing on the circle")]
+		public bool VotingBroadcast { get; set; } = true;
 	}	
 }

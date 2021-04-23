@@ -27,6 +27,13 @@ namespace CustomSpawner
 		private static Vector3 GuardPoint = new Vector3(230, 980, 95);
 		private static Vector3 Tutorial = new Vector3(241, 980, 96);
 
+		private List<Team> teamrespawncopy;
+
+		private int SCPsToSpawn = 0;
+		private int ClassDsToSpawn = 0;
+		private int ScientistsToSpawn = 0;
+		private int GuardsToSpawn = 0;
+
 		private List<GameObject> Dummies = new List<GameObject> { };
 		private static Dictionary<RoleType, string> dummiesToSpawn = new Dictionary<RoleType, string>
 		{
@@ -72,6 +79,25 @@ namespace CustomSpawner
 				UnityEngine.Object.Destroy(thing); // Deleting the dummies and SCP-018 circles
 			}
 
+			for (int x = 0; x < Player.List.ToList().Count; x++)
+			{
+				switch (teamrespawncopy[x])
+				{
+					case Team.CDP:
+						ClassDsToSpawn += 1;
+						break;
+					case Team.SCP:
+						SCPsToSpawn += 1;
+						break;
+					case Team.MTF:
+						GuardsToSpawn += 1;
+						break;
+					case Team.RSC:
+						ScientistsToSpawn += 1;
+						break;
+				}
+			}
+
 			List<Player> BulkList = Player.List.ToList();
 			List<Player> SCPPlayers = new List<Player> { };
 			List<Player> ScientistPlayers = new List<Player> { };
@@ -82,30 +108,6 @@ namespace CustomSpawner
 			List<Player> PlayersToSpawnAsScientist = new List<Player> { };
 			List<Player> PlayersToSpawnAsGuard = new List<Player> { };
 			List<Player> PlayersToSpawnAsClassD = new List<Player> { };
-
-			int SCPsToSpawn = 0;
-			int ClassDsToSpawn = 0;
-			int ScientistsToSpawn = 0;
-			int GuardsToSpawn = 0;
-
-			for (int x = 0; x < Player.List.ToList().Count; x++)
-			{
-				switch (plugin.Config.SpawnQueue[x])
-				{
-					case '4':
-						ClassDsToSpawn += 1;
-						break;
-					case '3':
-						ScientistsToSpawn += 1;
-						break;
-					case '1':
-						GuardsToSpawn += 1;
-						break;
-					case '0':
-						SCPsToSpawn += 1;
-						break;
-				}
-			}
 
 			foreach (var player in Player.List)
 			{
@@ -127,7 +129,6 @@ namespace CustomSpawner
 				}
 				player.Role = RoleType.None;
 			}
-
 			// ---------------------------------------------------------------------------------------\\
 			// ClassD
 			if (ClassDsToSpawn != 0)
@@ -153,7 +154,6 @@ namespace CustomSpawner
 					ClassDsToSpawn = 0;
 				}
 			}
-
 			// ---------------------------------------------------------------------------------------\\
 			// Scientists
 			if (ScientistsToSpawn != 0)
@@ -179,7 +179,6 @@ namespace CustomSpawner
 					ScientistsToSpawn = 0;
 				}
 			}
-
 			// ---------------------------------------------------------------------------------------\\
 			// Guards
 			if (GuardsToSpawn != 0)
@@ -205,7 +204,6 @@ namespace CustomSpawner
 					GuardsToSpawn = 0;
 				}
 			}
-
 			// ---------------------------------------------------------------------------------------\\
 			// SCPs
 			if (SCPsToSpawn != 0)
@@ -273,7 +271,6 @@ namespace CustomSpawner
 					BulkList.Remove(Ply); // Removing the winners from the bulk list
 				}
 			}
-
 			// ---------------------------------------------------------------------------------------\\
 
 			// Okay we have the list! Time to spawn everyone in, we'll leave SCP for last as it has a bit of logic.
@@ -322,9 +319,13 @@ namespace CustomSpawner
 			Timing.CallDelayed(10f, () =>
 			{
 				Round.IsLocked = false;
+				foreach(Team t in teamrespawncopy)
+				{
+					CharacterClassManager.ClassTeamQueue.Add(t);
+				}
 			});
 
-			var test = new RoundSummary.SumInfo_ClassList
+			var test = new RoundSummary.SumInfo_ClassList // Still don't know if this does anything
 			{
 				class_ds = ClassDsToSpawn,
 				scientists = ScientistsToSpawn,
@@ -342,7 +343,10 @@ namespace CustomSpawner
 
 		public void OnWaitingForPlayers()
 		{
+			teamrespawncopy = CharacterClassManager.ClassTeamQueue.ToList();
+			CharacterClassManager.ClassTeamQueue.Clear();
 			Round.IsLocked = true;
+
 			GameObject.Find("StartRound").transform.localScale = Vector3.zero;
 			Timing.RunCoroutine(LobbyTimer());
 
@@ -429,6 +433,30 @@ namespace CustomSpawner
 				foreach (Player ply in Player.List)
 				{
 					ply.ShowHint(message.ToString(), 1f);
+
+					if (!plugin.Config.VotingBroadcast)
+						continue;
+
+					if (Vector3.Distance(ply.Position, SCPPoint) <= 3)
+					{
+						ply.Broadcast(1, "<i>You are voting for SCP team!</i>");
+					}
+					else if (Vector3.Distance(ply.Position, ClassDPoint) <= 3)
+					{
+						ply.Broadcast(1, "<i>You are voting for Class D team!</i>");
+					}
+					else if (Vector3.Distance(ply.Position, ScientistPoint) <= 3)
+					{
+						ply.Broadcast(1, "<i>You are voting for Scientist team!</i>");
+					}
+					else if (Vector3.Distance(ply.Position, GuardPoint) <= 3)
+					{
+						ply.Broadcast(1, "<i>You are voting for Guard team!</i>");
+					}
+					else
+					{
+						ply.Broadcast(1, "<i>You are voting for a random team!</i>");
+					}
 				}
 				x++;
 				yield return Timing.WaitForSeconds(1f);
