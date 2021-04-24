@@ -27,12 +27,14 @@ namespace CustomSpawner
 		private static Vector3 GuardPoint = new Vector3(230, 980, 95);
 		private static Vector3 Tutorial = new Vector3(241, 980, 96);
 
-		private List<Team> teamrespawncopy;
+		private List<Team> teamrespawncopy = new List<Team> { };
 
 		private int SCPsToSpawn = 0;
 		private int ClassDsToSpawn = 0;
 		private int ScientistsToSpawn = 0;
 		private int GuardsToSpawn = 0;
+
+		private List<Pickup> boll = new List<Pickup> { }; // boll :flushed:
 
 		private List<GameObject> Dummies = new List<GameObject> { };
 		private static Dictionary<RoleType, string> dummiesToSpawn = new Dictionary<RoleType, string>
@@ -52,6 +54,12 @@ namespace CustomSpawner
 			{ RoleType.Scientist, new KeyValuePair<Vector3, Quaternion>(ScientistPoint, new Quaternion(0, 1, 0, -0.2f) ) },
 			{ RoleType.FacilityGuard, new KeyValuePair<Vector3, Quaternion>(GuardPoint, new Quaternion(0, 0.9f, 0, 0.4f) ) },
 		};
+
+		public void OnPickingUp(PickingUpItemEventArgs ev)
+		{
+			if (boll.Contains(ev.Pickup))
+				ev.IsAllowed = false;
+		}
 
 		public void OnVerified(VerifiedEventArgs ev)
 		{
@@ -78,6 +86,8 @@ namespace CustomSpawner
 			{
 				UnityEngine.Object.Destroy(thing); // Deleting the dummies and SCP-018 circles
 			}
+
+			RoundSummary.roundTime = 0; // My testing showed that this didn't make a difference lmk if it does I guess.
 
 			for (int x = 0; x < Player.List.ToList().Count; x++)
 			{
@@ -343,11 +353,17 @@ namespace CustomSpawner
 
 		public void OnWaitingForPlayers()
 		{
-			teamrespawncopy = CharacterClassManager.ClassTeamQueue.ToList();
+			if(teamrespawncopy.Count == 0)
+				teamrespawncopy = CharacterClassManager.ClassTeamQueue.ToList();
 			CharacterClassManager.ClassTeamQueue.Clear();
 			Round.IsLocked = true;
 
-			GameObject.Find("StartRound").transform.localScale = Vector3.zero;
+		SCPsToSpawn = 0;
+		ClassDsToSpawn = 0;
+		ScientistsToSpawn = 0;
+		GuardsToSpawn = 0;
+
+		GameObject.Find("StartRound").transform.localScale = Vector3.zero;
 			Timing.RunCoroutine(LobbyTimer());
 
 			foreach (var Role in dummiesToSpawn)
@@ -371,6 +387,7 @@ namespace CustomSpawner
 				Dummies.Add(obj);
 
 				Pickup pickup = Exiled.API.Extensions.Item.Spawn(ItemType.SCP018, 0, dummySpawnPointsAndRotations[Role.Key].Key);
+				boll.Add(pickup);
 				GameObject gameObject = pickup.gameObject;
 				gameObject.transform.localScale = new Vector3(30f, 0.1f, 30f);
 				NetworkServer.UnSpawn(gameObject);

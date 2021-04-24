@@ -16,7 +16,7 @@ namespace CustomSpawner
 		public override string Author { get; } = "Kognity";
 		public override string Prefix { get; } = "CustomSpawner";
 		public override Version RequiredExiledVersion { get; } = new Version(2, 8, 0);
-		public override Version Version { get; } = new Version(1, 1, 0);
+		public override Version Version { get; } = new Version(1, 2, 0);
 
 		public override void OnEnabled()
 		{
@@ -25,6 +25,7 @@ namespace CustomSpawner
 			Exiled.Events.Handlers.Player.Verified += Handler.OnVerified;
 			Exiled.Events.Handlers.Server.RoundStarted += Handler.OnRoundStart;
 			Exiled.Events.Handlers.Server.WaitingForPlayers += Handler.OnWaitingForPlayers;
+			Exiled.Events.Handlers.Player.PickingUpItem += Handler.OnPickingUp;
 			base.OnEnabled();
 		}
 
@@ -33,6 +34,7 @@ namespace CustomSpawner
 			Exiled.Events.Handlers.Player.Verified -= Handler.OnVerified;
 			Exiled.Events.Handlers.Server.RoundStarted -= Handler.OnRoundStart;
 			Exiled.Events.Handlers.Server.WaitingForPlayers -= Handler.OnWaitingForPlayers;
+			Exiled.Events.Handlers.Player.PickingUpItem -= Handler.OnPickingUp;
 
 			Handler = null;
 			base.OnDisabled();
