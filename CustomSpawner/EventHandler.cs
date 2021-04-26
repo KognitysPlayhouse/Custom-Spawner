@@ -18,6 +18,8 @@ namespace CustomSpawner
 		public CustomSpawner plugin;
 		public EventHandler(CustomSpawner plugin) => this.plugin = plugin;
 
+		private readonly Config Config = CustomSpawner.Singleton.Config;
+
 		private static Vector3 SpawnPoint = new Vector3(240, 978, 96); // Spawn point for all players when they get set to tutorial
 
 		// Spawn points for the different teams
@@ -29,6 +31,8 @@ namespace CustomSpawner
 
 		private List<Team> teamrespawncopy = new List<Team> { };
 
+		private CoroutineHandle lobbyTimer;
+
 		private int SCPsToSpawn = 0;
 		private int ClassDsToSpawn = 0;
 		private int ScientistsToSpawn = 0;
@@ -37,14 +41,6 @@ namespace CustomSpawner
 		private List<Pickup> boll = new List<Pickup> { }; // boll :flushed:
 
 		private List<GameObject> Dummies = new List<GameObject> { };
-		private static Dictionary<RoleType, string> dummiesToSpawn = new Dictionary<RoleType, string>
-		{
-			{ RoleType.Tutorial, "Random Team" },
-			{ RoleType.ClassD, "Class D Team" },
-			{ RoleType.Scp173, "SCP Team" },
-			{ RoleType.Scientist, "Scientist Team" },
-			{ RoleType.FacilityGuard, "MTF Team" },
-		};
 
 		private static Dictionary<RoleType, KeyValuePair<Vector3, Quaternion>> dummySpawnPointsAndRotations = new Dictionary<RoleType, KeyValuePair<Vector3, Quaternion>>
 		{
@@ -70,6 +66,7 @@ namespace CustomSpawner
 					ev.Player.IsOverwatchEnabled = false;
 					ev.Player.Role = RoleType.Tutorial;
 					Scp096.TurnedPlayers.Add(ev.Player);
+					Scp173.TurnedPlayers.Add(ev.Player);
 				});
 
 				Timing.CallDelayed(1f, () =>
@@ -86,11 +83,20 @@ namespace CustomSpawner
 			{
 				UnityEngine.Object.Destroy(thing); // Deleting the dummies and SCP-018 circles
 			}
+			if (lobbyTimer.IsRunning)
+			{
+				Timing.KillCoroutines(lobbyTimer);
+			}
 
 			RoundSummary.roundTime = 0; // My testing showed that this didn't make a difference lmk if it does I guess.
 
 			for (int x = 0; x < Player.List.ToList().Count; x++)
 			{
+				if (x >= teamrespawncopy.Count)
+				{
+					ClassDsToSpawn += 1;
+					continue;
+				}
 				switch (teamrespawncopy[x])
 				{
 					case Team.CDP:
@@ -137,7 +143,6 @@ namespace CustomSpawner
 				{
 					GuardPlayers.Add(player);
 				}
-				player.Role = RoleType.None;
 			}
 			// ---------------------------------------------------------------------------------------\\
 			// ClassD
@@ -286,24 +291,15 @@ namespace CustomSpawner
 			// Okay we have the list! Time to spawn everyone in, we'll leave SCP for last as it has a bit of logic.
 			foreach (Player ply in PlayersToSpawnAsClassD)
 			{
-				Timing.CallDelayed(0.1f, () =>
-				{
-					ply.Role = RoleType.ClassD;
-				});
+				ply.Role = RoleType.ClassD;
 			}
 			foreach (Player ply in PlayersToSpawnAsScientist)
 			{
-				Timing.CallDelayed(0.1f, () =>
-				{
-					ply.Role = RoleType.Scientist;
-				});
+				ply.Role = RoleType.Scientist;
 			}
 			foreach (Player ply in PlayersToSpawnAsGuard)
 			{
-				Timing.CallDelayed(0.1f, () =>
-				{
-					ply.Role = RoleType.FacilityGuard;
-				});
+				ply.Role = RoleType.FacilityGuard;
 			}
 
 			// ---------------------------------------------------------------------------------------\\
@@ -320,15 +316,11 @@ namespace CustomSpawner
 				RoleType role = Roles[random.Next(Roles.Count)];
 				Roles.Remove(role);
 
-				Timing.CallDelayed(0.1f, () =>
-				{
-					ply.Role = role;
-				});
+				ply.Role = role;
 			}
 
-			Timing.CallDelayed(10f, () =>
+			Timing.CallDelayed(2f, () =>
 			{
-				Round.IsLocked = false;
 				foreach(Team t in teamrespawncopy)
 				{
 					CharacterClassManager.ClassTeamQueue.Add(t);
@@ -355,19 +347,36 @@ namespace CustomSpawner
 		{
 			if(teamrespawncopy.Count == 0)
 				teamrespawncopy = CharacterClassManager.ClassTeamQueue.ToList();
+
 			CharacterClassManager.ClassTeamQueue.Clear();
-			Round.IsLocked = true;
 
-		SCPsToSpawn = 0;
-		ClassDsToSpawn = 0;
-		ScientistsToSpawn = 0;
-		GuardsToSpawn = 0;
+			SCPsToSpawn = 0;
+			ClassDsToSpawn = 0;
+			ScientistsToSpawn = 0;
+			GuardsToSpawn = 0;
 
-		GameObject.Find("StartRound").transform.localScale = Vector3.zero;
-			Timing.RunCoroutine(LobbyTimer());
+
+			Dictionary<RoleType, string> dummiesToSpawn = new Dictionary<RoleType, string>
+			{
+				{ RoleType.Tutorial, Config.RandomTeamDummy },
+				{ RoleType.ClassD, Config.ClassDTeamDummy },
+				{ RoleType.Scp173, Config.SCPTeamDummy },
+				{ RoleType.Scientist, Config.ScientistTeamDummy },
+				{ RoleType.FacilityGuard, Config.MTFTeamDummy },
+			};
+
+
+			GameObject.Find("StartRound").transform.localScale = Vector3.zero;
+
+			if (lobbyTimer.IsRunning)
+			{
+				Timing.KillCoroutines(lobbyTimer);
+			}
+			lobbyTimer = Timing.RunCoroutine(LobbyTimer());
 
 			foreach (var Role in dummiesToSpawn)
 			{
+				
 				GameObject obj = UnityEngine.Object.Instantiate(
 										NetworkManager.singleton.spawnPrefabs.FirstOrDefault(p => p.gameObject.name == "Player"));
 				CharacterClassManager ccm = obj.GetComponent<CharacterClassManager>();
@@ -386,12 +395,14 @@ namespace CustomSpawner
 				NetworkServer.Spawn(obj);
 				Dummies.Add(obj);
 
+				
 				Pickup pickup = Exiled.API.Extensions.Item.Spawn(ItemType.SCP018, 0, dummySpawnPointsAndRotations[Role.Key].Key);
 				boll.Add(pickup);
 				GameObject gameObject = pickup.gameObject;
 				gameObject.transform.localScale = new Vector3(30f, 0.1f, 30f);
 				NetworkServer.UnSpawn(gameObject);
 				NetworkServer.Spawn(pickup.gameObject);
+
 				Dummies.Add(pickup.gameObject);
 
 				Rigidbody rigidBody = pickup.gameObject.GetComponent<Rigidbody>();
@@ -412,7 +423,7 @@ namespace CustomSpawner
 		private IEnumerator<float> LobbyTimer()
 		{
 			StringBuilder message = new StringBuilder();
-			var text = $"\n\n\n\n\n\n\n\n\n<b>{plugin.Config.DiscordInvite}</b>\n<color=%rainbow%><b>{plugin.Config.UpperText}\n{plugin.Config.BottomText}</b></color>";
+			var text = $"\n\n\n\n\n\n\n\n\n<b>{Config.DiscordInvite}</b>\n<color=%rainbow%><b>{Config.UpperText}\n{Config.BottomText}</b></color>";
 			int x = 0;
 			string[] colors = { "#f54242", "#f56042", "#f57e42", "#f59c42", "#f5b942", "#f5d742", "#f5f542", "#d7f542", "#b9f542", "#9cf542", "#7ef542", "#60f542", "#42f542", "#42f560", "#42f57b", "#42f599", "#42f5b6", "#42f5d4", "#42f5f2", "#42ddf5", "#42bcf5", "#429ef5", "#4281f5", "#4263f5", "#4245f5", "#5a42f5", "#7842f5", "#9642f5", "#b342f5", "#d142f5", "#ef42f5", "#f542dd", "#f542c2", "#f542aa", "#f5428d", "#f5426f", "#f54251" };
 			while (!Round.IsStarted)
@@ -423,27 +434,27 @@ namespace CustomSpawner
 					message.Append("\n");
 				}
 
-				message.Append("<size=40><color=yellow><b>The game will be starting soon, %seconds</b></color></size>");
+				message.Append($"<size=40><color=yellow><b>{Config.StartingSoonText}, %seconds</b></color></size>");
 
 				short NetworkTimer = GameCore.RoundStart.singleton.NetworkTimer;
 
 				switch (NetworkTimer)
 				{
-					case -2: message.Replace("%seconds", "Server is paused"); break;
+					case -2: message.Replace("%seconds", Config.PausedServer); break;
 
-					case -1: message.Replace("%seconds", "Round is being started"); break;
+					case -1: message.Replace("%seconds", Config.RoundStarted); break;
 
-					case 1: message.Replace("%seconds", $"{NetworkTimer} second remain"); break;
+					case 1: message.Replace("%seconds", $"{NetworkTimer} {Config.SecondRemain}"); break;
 
-					case 0: message.Replace("%seconds", "Round is being started"); break;
+					case 0: message.Replace("%seconds", Config.RoundStarted); break;
 
-					default: message.Replace("%seconds", $"{NetworkTimer} seconds remains"); break;
+					default: message.Replace("%seconds", $"{NetworkTimer} {Config.SecondsRemain}"); break;
 				}
 
 				message.Append($"\n<size=30><i>%players</i></size>");
 
-				if (Player.List.Count() == 1) message.Replace("%players", $"{Player.List.Count()} player has connected");
-				else message.Replace("%players", $"{Player.List.Count()} players have connected");
+				if (Player.List.Count() == 1) message.Replace("%players", $"{Player.List.Count()} {Config.PlayerHasConnected}");
+				else message.Replace("%players", $"{Player.List.Count()} {Config.PlayersHaveConnected}");
 
 				message.Append(text.Replace("%rainbow%", colors[x++ % colors.Length]));
 
@@ -451,28 +462,28 @@ namespace CustomSpawner
 				{
 					ply.ShowHint(message.ToString(), 1f);
 
-					if (!plugin.Config.VotingBroadcast)
+					if (!Config.VotingBroadcast)
 						continue;
 
 					if (Vector3.Distance(ply.Position, SCPPoint) <= 3)
 					{
-						ply.Broadcast(1, "<i>You are voting for SCP team!</i>");
+						ply.Broadcast(1, $"<i>{Config.SCPTeam}</i>");
 					}
 					else if (Vector3.Distance(ply.Position, ClassDPoint) <= 3)
 					{
-						ply.Broadcast(1, "<i>You are voting for Class D team!</i>");
+						ply.Broadcast(1, $"<i>{Config.ClassDTeam}</i>");
 					}
 					else if (Vector3.Distance(ply.Position, ScientistPoint) <= 3)
 					{
-						ply.Broadcast(1, "<i>You are voting for Scientist team!</i>");
+						ply.Broadcast(1, $"<i>{Config.ScientistTeam}</i>");
 					}
 					else if (Vector3.Distance(ply.Position, GuardPoint) <= 3)
 					{
-						ply.Broadcast(1, "<i>You are voting for Guard team!</i>");
+						ply.Broadcast(1, $"<i>{Config.GuardTeam}</i>");
 					}
 					else
 					{
-						ply.Broadcast(1, "<i>You are voting for a random team!</i>");
+						ply.Broadcast(1, $"<i>{Config.RandomTeam}</i>");
 					}
 				}
 				x++;
