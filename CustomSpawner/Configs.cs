@@ -21,6 +21,9 @@ namespace CustomSpawner
 		[Description("If you want a Broadcast to show the class that the player will vote as when they're standing on the circle")]
 		public bool VotingBroadcast { get; set; } = true;
 
+		[Description("Spawn queue")]
+		public string SpawnQueue { get; set; } = "40143140314414041340";
+
 		public string StartingSoonText { get; set; } = "The game will be starting soon";
 		public string PausedServer { get; set; } = "Server is paused";
 		public string RoundStarted{ get; set; } = "Round is being started";

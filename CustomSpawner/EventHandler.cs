@@ -29,8 +29,6 @@ namespace CustomSpawner
 		private static Vector3 GuardPoint = new Vector3(230, 980, 95);
 		private static Vector3 Tutorial = new Vector3(241, 980, 96);
 
-		private List<Team> teamrespawncopy = new List<Team> { };
-
 		private CoroutineHandle lobbyTimer;
 
 		private int SCPsToSpawn = 0;
@@ -88,27 +86,25 @@ namespace CustomSpawner
 				Timing.KillCoroutines(lobbyTimer);
 			}
 
-			RoundSummary.roundTime = 0; // My testing showed that this didn't make a difference lmk if it does I guess.
-
 			for (int x = 0; x < Player.List.ToList().Count; x++)
 			{
-				if (x >= teamrespawncopy.Count)
+				if (x >= Config.SpawnQueue.Count())
 				{
 					ClassDsToSpawn += 1;
 					continue;
 				}
-				switch (teamrespawncopy[x])
+				switch (Config.SpawnQueue[x])
 				{
-					case Team.CDP:
+					case '4':
 						ClassDsToSpawn += 1;
 						break;
-					case Team.SCP:
+					case '0':
 						SCPsToSpawn += 1;
 						break;
-					case Team.MTF:
+					case '1':
 						GuardsToSpawn += 1;
 						break;
-					case Team.RSC:
+					case '3':
 						ScientistsToSpawn += 1;
 						break;
 				}
@@ -319,14 +315,13 @@ namespace CustomSpawner
 				ply.Role = role;
 			}
 
-			Timing.CallDelayed(2f, () =>
+			Timing.CallDelayed(1f, () =>
 			{
-				foreach(Team t in teamrespawncopy)
-				{
-					CharacterClassManager.ClassTeamQueue.Add(t);
-				}
+				Round.IsLocked = false;
 			});
 
+			// I will come back to this later
+			/*
 			var test = new RoundSummary.SumInfo_ClassList // Still don't know if this does anything
 			{
 				class_ds = ClassDsToSpawn,
@@ -334,7 +329,7 @@ namespace CustomSpawner
 				scps_except_zombies = SCPsToSpawn,
 				mtf_and_guards = GuardsToSpawn
 			};
-			RoundSummary.singleton.SetStartClassList(test);
+			RoundSummary.singleton.SetStartClassList(test);*/
 
 			Timing.CallDelayed(3, () =>
 			{
@@ -345,10 +340,7 @@ namespace CustomSpawner
 
 		public void OnWaitingForPlayers()
 		{
-			if(teamrespawncopy.Count == 0)
-				teamrespawncopy = CharacterClassManager.ClassTeamQueue.ToList();
-
-			CharacterClassManager.ClassTeamQueue.Clear();
+			Round.IsLocked = true;
 
 			SCPsToSpawn = 0;
 			ClassDsToSpawn = 0;
