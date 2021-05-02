@@ -9,7 +9,9 @@ This plugin likely is going to have conflicts and not be outright compatible wit
 
 # Server Config Setup
 You need to go to your config_gameplay.txt file and change the team_respawn_queue to:
+
 `team_respawn_queue: 55555555555555555555555555555555555555555555555555555555555555555555555`
+
 This is done to ensure no one spawns at the start of the round and so it doesn't screw anything up with any other plugins.
 
 # Plugin setup:
