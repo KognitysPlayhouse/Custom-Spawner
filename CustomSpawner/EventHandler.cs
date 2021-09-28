@@ -1,4 +1,4 @@
-﻿using Exiled.API.Extensions;
+using Exiled.API.Extensions;
 using Exiled.API.Features;
 using Exiled.Events.EventArgs;
 using MEC;
@@ -9,6 +9,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using Exiled.API.Features.Items;
+using Mirror.LiteNetLib4Mirror;
 using UnityEngine;
 
 namespace CustomSpawner
@@ -22,12 +24,12 @@ namespace CustomSpawner
 
 		private static Vector3 SpawnPoint = new Vector3(240, 978, 96); // Spawn point for all players when they get set to tutorial
 
-		// Spawn points for the different teams
-		private static Vector3 ClassDPoint = new Vector3(237, 980, 86);
-		private static Vector3 SCPPoint = new Vector3(251, 980, 98);
-		private static Vector3 ScientistPoint = new Vector3(245, 980, 107);
-		private static Vector3 GuardPoint = new Vector3(230, 980, 95);
-		private static Vector3 Tutorial = new Vector3(241, 980, 96);
+		// Spawn points for the different teams, making an arch shape
+		public static Vector3 ClassDPoint = new Vector3(249, 980, 81.5f);
+		public static Vector3 GuardPoint = new Vector3(237, 980, 81.7f);
+		public static Vector3 Tutorial = new Vector3(228, 980, 87.6f);
+		public static Vector3 SCPPoint = new Vector3(223, 980, 99);
+		public static Vector3 ScientistPoint = new Vector3(226, 980, 107);
 
 		private CoroutineHandle lobbyTimer;
 
@@ -40,13 +42,13 @@ namespace CustomSpawner
 
 		private List<GameObject> Dummies = new List<GameObject> { };
 
-		private static Dictionary<RoleType, KeyValuePair<Vector3, Quaternion>> dummySpawnPointsAndRotations = new Dictionary<RoleType, KeyValuePair<Vector3, Quaternion>>
+		Dictionary<RoleType, KeyValuePair<Vector3, Quaternion>> dummySpawnPointsAndRotations = new Dictionary<RoleType, KeyValuePair<Vector3, Quaternion>>
 		{
-			{ RoleType.Tutorial, new KeyValuePair<Vector3, Quaternion>(Tutorial, new Quaternion(0, 0, 0, 0) ) },
-			{ RoleType.ClassD, new KeyValuePair<Vector3, Quaternion>(ClassDPoint, new Quaternion(0, 0.1f, 0, -1) ) },
-			{ RoleType.Scp173, new KeyValuePair<Vector3, Quaternion>(SCPPoint, new Quaternion(0, 0.8f, 0, -0.6f) ) },
-			{ RoleType.Scientist, new KeyValuePair<Vector3, Quaternion>(ScientistPoint, new Quaternion(0, 1, 0, -0.2f) ) },
-			{ RoleType.FacilityGuard, new KeyValuePair<Vector3, Quaternion>(GuardPoint, new Quaternion(0, 0.9f, 0, 0.4f) ) },
+			{ RoleType.Scientist, new KeyValuePair<Vector3, Quaternion>(ScientistPoint, Quaternion.Euler(0,129.25f , 0) ) },
+			{ RoleType.Scp173, new KeyValuePair<Vector3, Quaternion>(SCPPoint, Quaternion.Euler(0, 100.64f, 0f) ) },
+			{ RoleType.Tutorial, new KeyValuePair<Vector3, Quaternion>(Tutorial, Quaternion.Euler(0f, 55.8f, 0f)) },
+			{ RoleType.FacilityGuard, new KeyValuePair<Vector3, Quaternion>(GuardPoint, Quaternion.Euler(0f, 12f, 0f) ) },
+			{ RoleType.ClassD, new KeyValuePair<Vector3, Quaternion>(ClassDPoint, Quaternion.Euler(0, 340f, 0) ) },
 		};
 
 		public void OnPickingUp(PickingUpItemEventArgs ev)
@@ -368,9 +370,8 @@ namespace CustomSpawner
 
 			foreach (var Role in dummiesToSpawn)
 			{
-				
 				GameObject obj = UnityEngine.Object.Instantiate(
-										NetworkManager.singleton.spawnPrefabs.FirstOrDefault(p => p.gameObject.name == "Player"));
+					LiteNetLib4MirrorNetworkManager.singleton.playerPrefab);
 				CharacterClassManager ccm = obj.GetComponent<CharacterClassManager>();
 				if (ccm == null)
 					Log.Error("CCM is null, this can cause problems!");
@@ -384,21 +385,21 @@ namespace CustomSpawner
 
 				obj.transform.position = dummySpawnPointsAndRotations[Role.Key].Key;
 				obj.transform.rotation = dummySpawnPointsAndRotations[Role.Key].Value;
+
 				NetworkServer.Spawn(obj);
 				Dummies.Add(obj);
 
-				
-				Pickup pickup = Exiled.API.Extensions.Item.Spawn(ItemType.SCP018, 0, dummySpawnPointsAndRotations[Role.Key].Key);
-				boll.Add(pickup);
-				GameObject gameObject = pickup.gameObject;
+				var pickup = new Item(ItemType.SCP018).Spawn(dummySpawnPointsAndRotations[Role.Key].Key);
+				GameObject gameObject = pickup.Base.gameObject;
 				gameObject.transform.localScale = new Vector3(30f, 0.1f, 30f);
 				NetworkServer.UnSpawn(gameObject);
-				NetworkServer.Spawn(pickup.gameObject);
+				NetworkServer.Spawn(pickup.Base.gameObject);
+				Dummies.Add(pickup.Base.gameObject);
 
-				Dummies.Add(pickup.gameObject);
+				boll.Add(pickup);
 
-				Rigidbody rigidBody = pickup.gameObject.GetComponent<Rigidbody>();
-				Collider[] collider = pickup.gameObject.GetComponents<Collider>();
+				Rigidbody rigidBody = pickup.Base.gameObject.GetComponent<Rigidbody>();
+				Collider[] collider = pickup.Base.gameObject.GetComponents<Collider>();
 				foreach (Collider thing in collider)
 				{
 					thing.enabled = false;
@@ -408,7 +409,7 @@ namespace CustomSpawner
 					rigidBody.useGravity = false;
 					rigidBody.detectCollisions = false;
 				}
-				pickup.transform.localPosition = dummySpawnPointsAndRotations[Role.Key].Key + Vector3.down * 3.3f;
+				pickup.Base.transform.localPosition = dummySpawnPointsAndRotations[Role.Key].Key + Vector3.down * 3.3f;
 			}
 		}
 
