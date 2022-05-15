@@ -395,22 +395,27 @@ namespace CustomSpawner
 				var pickup = Item.Create(ItemType.SCP018).Spawn(dummySpawnPointsAndRotations[Role.Key].Key);
 				GameObject gameObject = pickup.Base.gameObject;
 				gameObject.transform.localScale = new Vector3(30f, 0.1f, 30f);
-				
-				gameObject.AddComponent<LightSourceToy>();
-				if (gameObject.TryGetComponent(out LightSourceToy lightSourceToy))
+
+				var light = Light.Create(dummySpawnPointsAndRotations[Role.Key].Key, dummySpawnPointsAndRotations[Role.Key].Value.eulerAngles);
+				light.Intensity = 4f;
+				light.Range = 10f;
+				switch (Role.Key.GetTeam())
 				{
-					var light = Light.Get(lightSourceToy);
-					light.Intensity = 10f;
-					light.Range = 30f;
-					switch (Role.Key)
-					{
-						case RoleType.Scientist:
-							light.Color = Color.yellow;
-							break;
-						default:
-							light.Color = Color.blue;
-							break;
-					}
+					case Team.RSC:
+						light.Color = Color.white;
+						break;
+					case Team.MTF:
+						light.Color = Color.gray;
+						break;
+					case Team.SCP:
+						light.Color = Color.red;
+						break;
+					case Team.CDP:
+						light.Color = Color.yellow;
+						break;
+					default:
+						light.Color = Color.blue;
+						break;
 				}
 				NetworkServer.UnSpawn(gameObject);
 				NetworkServer.Spawn(pickup.Base.gameObject);
