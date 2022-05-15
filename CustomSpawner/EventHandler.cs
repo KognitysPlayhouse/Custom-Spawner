@@ -9,9 +9,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using AdminToys;
 using Exiled.API.Features.Items;
 using Mirror.LiteNetLib4Mirror;
 using UnityEngine;
+using Light = Exiled.API.Features.Toys.Light;
+using Object = UnityEngine.Object;
+using Random = UnityEngine.Random;
 
 namespace CustomSpawner
 {
@@ -64,7 +68,7 @@ namespace CustomSpawner
 				Timing.CallDelayed(0.5f, () =>
 				{
 					ev.Player.IsOverwatchEnabled = false;
-					ev.Player.Role = RoleType.Tutorial;
+					ev.Player.SetRole(RoleType.Tutorial);
 					Scp096.TurnedPlayers.Add(ev.Player);
 					Scp173.TurnedPlayers.Add(ev.Player);
 				});
@@ -78,7 +82,6 @@ namespace CustomSpawner
 
 		public void OnRoundStart()
 		{
-			System.Random random = new System.Random();
 			foreach (var thing in Dummies)
 			{
 				UnityEngine.Object.Destroy(thing); // Deleting the dummies and SCP-018 circles
@@ -159,7 +162,7 @@ namespace CustomSpawner
 				{
 					for (int x = 0; x < ClassDsToSpawn; x++)
 					{
-						Player Ply = ClassDPlayers[random.Next(ClassDPlayers.Count)];
+						Player Ply = ClassDPlayers[Random.Range(0, ClassDPlayers.Count)];
 						PlayersToSpawnAsClassD.Add(Ply);
 						ClassDPlayers.Remove(Ply); // Removing winner from the list
 						BulkList.Remove(Ply); // Removing the winners from the bulk list
@@ -184,7 +187,7 @@ namespace CustomSpawner
 				{
 					for (int x = 0; x < ScientistsToSpawn; x++)
 					{
-						Player Ply = ScientistPlayers[random.Next(ScientistPlayers.Count)];
+						Player Ply = ScientistPlayers[Random.Range(0, ScientistPlayers.Count)];
 						PlayersToSpawnAsScientist.Add(Ply);
 						ScientistPlayers.Remove(Ply); // Removing winner from the list
 						BulkList.Remove(Ply); // Removing the winners from the bulk list
@@ -209,7 +212,7 @@ namespace CustomSpawner
 				{
 					for (int x = 0; x < GuardsToSpawn; x++)
 					{
-						Player Ply = GuardPlayers[random.Next(GuardPlayers.Count)];
+						Player Ply = GuardPlayers[Random.Range(0, GuardPlayers.Count)];
 						PlayersToSpawnAsGuard.Add(Ply);
 						GuardPlayers.Remove(Ply); // Removing winner from the list
 						BulkList.Remove(Ply); // Removing the winners from the bulk list
@@ -234,7 +237,7 @@ namespace CustomSpawner
 				{
 					for (int x = 0; x < SCPsToSpawn; x++)
 					{
-						Player Ply = SCPPlayers[random.Next(SCPPlayers.Count)];
+						Player Ply = SCPPlayers[Random.Range(0, SCPPlayers.Count)];
 						SCPPlayers.Remove(Ply);
 						PlayersToSpawnAsSCP.Add(Ply); // Removing winner from the list
 						BulkList.Remove(Ply); // Removing the winners from the bulk list
@@ -252,7 +255,7 @@ namespace CustomSpawner
 			{
 				for (int x = 0; x < ClassDsToSpawn; x++)
 				{
-					Player Ply = BulkList[random.Next(BulkList.Count)];
+					Player Ply = BulkList[Random.Range(0, BulkList.Count)];
 					PlayersToSpawnAsClassD.Add(Ply);
 					BulkList.Remove(Ply); // Removing the winners from the bulk list
 				}
@@ -261,7 +264,7 @@ namespace CustomSpawner
 			{
 				for (int x = 0; x < SCPsToSpawn; x++)
 				{
-					Player Ply = BulkList[random.Next(BulkList.Count)];
+					Player Ply = BulkList[Random.Range(0, BulkList.Count)];
 					PlayersToSpawnAsSCP.Add(Ply);
 					BulkList.Remove(Ply); // Removing the winners from the bulk list
 				}
@@ -270,7 +273,7 @@ namespace CustomSpawner
 			{
 				for (int x = 0; x < ScientistsToSpawn; x++)
 				{
-					Player Ply = BulkList[random.Next(BulkList.Count)];
+					Player Ply = BulkList[Random.Range(0, BulkList.Count)];
 					PlayersToSpawnAsScientist.Add(Ply);
 					BulkList.Remove(Ply); // Removing the winners from the bulk list
 				}
@@ -279,7 +282,7 @@ namespace CustomSpawner
 			{
 				for (int x = 0; x < GuardsToSpawn; x++)
 				{
-					Player Ply = BulkList[random.Next(BulkList.Count)];
+					Player Ply = BulkList[Random.Range(0, BulkList.Count)];
 					PlayersToSpawnAsGuard.Add(Ply);
 					BulkList.Remove(Ply); // Removing the winners from the bulk list
 				}
@@ -289,15 +292,15 @@ namespace CustomSpawner
 			// Okay we have the list! Time to spawn everyone in, we'll leave SCP for last as it has a bit of logic.
 			foreach (Player ply in PlayersToSpawnAsClassD)
 			{
-				ply.Role = RoleType.ClassD;
+				ply.SetRole(RoleType.ClassD);
 			}
 			foreach (Player ply in PlayersToSpawnAsScientist)
 			{
-				ply.Role = RoleType.Scientist;
+				ply.SetRole(RoleType.Scientist);
 			}
 			foreach (Player ply in PlayersToSpawnAsGuard)
 			{
-				ply.Role = RoleType.FacilityGuard;
+				ply.SetRole(RoleType.FacilityGuard);
 			}
 
 			// ---------------------------------------------------------------------------------------\\
@@ -311,10 +314,10 @@ namespace CustomSpawner
 
 			foreach (Player ply in PlayersToSpawnAsSCP)
 			{
-				RoleType role = Roles[random.Next(Roles.Count)];
+				RoleType role = Roles[Random.Range(0, Roles.Count)];
 				Roles.Remove(role);
 
-				ply.Role = role;
+				ply.SetRole(role);
 			}
 
 			Timing.CallDelayed(1f, () =>
@@ -388,10 +391,27 @@ namespace CustomSpawner
 
 				NetworkServer.Spawn(obj);
 				Dummies.Add(obj);
-
-				var pickup = new Item(ItemType.SCP018).Spawn(dummySpawnPointsAndRotations[Role.Key].Key);
+				
+				var pickup = Item.Create(ItemType.SCP018).Spawn(dummySpawnPointsAndRotations[Role.Key].Key);
 				GameObject gameObject = pickup.Base.gameObject;
 				gameObject.transform.localScale = new Vector3(30f, 0.1f, 30f);
+				
+				gameObject.AddComponent<LightSourceToy>();
+				if (gameObject.TryGetComponent(out LightSourceToy lightSourceToy))
+				{
+					var light = Light.Get(lightSourceToy);
+					light.Intensity = 10f;
+					light.Range = 30f;
+					switch (Role.Key)
+					{
+						case RoleType.Scientist:
+							light.Color = Color.yellow;
+							break;
+						default:
+							light.Color = Color.blue;
+							break;
+					}
+				}
 				NetworkServer.UnSpawn(gameObject);
 				NetworkServer.Spawn(pickup.Base.gameObject);
 				Dummies.Add(pickup.Base.gameObject);
