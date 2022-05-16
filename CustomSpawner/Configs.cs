@@ -9,6 +9,9 @@ namespace CustomSpawner
 		[Description("If the plugin is enabled or not.")]
 		public bool IsEnabled { get; set; } = true;
 
+		[Description("Show debug messages?")]
+		public bool ShowDebug = false;
+		
 		[Description("Upper text shown to the user")]
 		public string UpperText { get; set; } = "Welcome to the Server!";
 

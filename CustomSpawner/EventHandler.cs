@@ -91,6 +91,8 @@ namespace CustomSpawner
 				Timing.KillCoroutines(lobbyTimer);
 			}
 
+			Log.Debug($"Player List count: {Player.List.Count()}", Config.ShowDebug);
+			Log.Debug($"Config::Spawnquene count: {Config.SpawnQueue.Count()}", Config.ShowDebug);
 			for (int x = 0; x < Player.List.ToList().Count; x++)
 			{
 				if (x >= Config.SpawnQueue.Count())
@@ -115,6 +117,7 @@ namespace CustomSpawner
 				}
 			}
 
+			Log.Debug($"Calculated people to spawn! SCPS: {SCPsToSpawn}, CDs: {ClassDsToSpawn}, Guard: {GuardsToSpawn}, Science: {ScientistsToSpawn}", Config.ShowDebug);
 			List<Player> BulkList = Player.List.ToList();
 			List<Player> SCPPlayers = new List<Player> { };
 			List<Player> ScientistPlayers = new List<Player> { };
@@ -131,18 +134,22 @@ namespace CustomSpawner
 				if (Vector3.Distance(player.Position, SCPPoint) <= 3)
 				{
 					SCPPlayers.Add(player);
+					Log.Debug($"Added {player.Nickname} to scp spawnlist!", Config.ShowDebug);
 				}
 				else if (Vector3.Distance(player.Position, ClassDPoint) <= 3)
 				{
 					ClassDPlayers.Add(player);
+					Log.Debug($"Added {player.Nickname} to cd spawnlist!", Config.ShowDebug);
 				}
 				else if (Vector3.Distance(player.Position, ScientistPoint) <= 3)
 				{
 					ScientistPlayers.Add(player);
+					Log.Debug($"Added {player.Nickname} to sc spawnlist!", Config.ShowDebug);
 				}
 				else if (Vector3.Distance(player.Position, GuardPoint) <= 3)
 				{
 					GuardPlayers.Add(player);
+					Log.Debug($"Added {player.Nickname} to guard spawnlist!", Config.ShowDebug);
 				}
 			}
 			// ---------------------------------------------------------------------------------------\\
@@ -245,6 +252,11 @@ namespace CustomSpawner
 					SCPsToSpawn = 0;
 				}
 			}
+			Log.Debug($"Filling blanks: Players (SCP/CD/SC/MTF): {SCPPlayers.Count()}, {ClassDPlayers.Count()}, {ScientistPlayers.Count()}, {GuardPlayers.Count()}", Config.ShowDebug);
+			foreach (var playerPly in SCPPlayers)
+			{
+				Log.Debug($"{playerPly.Nickname}, {playerPly.UserId}", Config.ShowDebug);
+			}
 			// ---------------------------------------------------------------------------------------\\
 			// ---------------------------------------------------------------------------------------\\
 			// ---------------------------------------------------------------------------------------\\
@@ -287,20 +299,27 @@ namespace CustomSpawner
 					BulkList.Remove(Ply); // Removing the winners from the bulk list
 				}
 			}
+			Log.Debug($"Filled blanks: Players (SCP/CD/SC/MTF): {SCPPlayers.Count()}, {ClassDPlayers.Count()}, {ScientistPlayers.Count()}, {GuardPlayers.Count()}", Config.ShowDebug);
 			// ---------------------------------------------------------------------------------------\\
 
 			// Okay we have the list! Time to spawn everyone in, we'll leave SCP for last as it has a bit of logic.
 			foreach (Player ply in PlayersToSpawnAsClassD)
 			{
+				Log.Debug($"spawning {ply.Nickname} as CD", Config.ShowDebug);
 				ply.SetRole(RoleType.ClassD);
+				Log.Debug("spawned", Config.ShowDebug);
 			}
 			foreach (Player ply in PlayersToSpawnAsScientist)
 			{
+				Log.Debug($"spawning {ply.Nickname} as SC", Config.ShowDebug);
 				ply.SetRole(RoleType.Scientist);
+				Log.Debug("spawned", Config.ShowDebug);
 			}
 			foreach (Player ply in PlayersToSpawnAsGuard)
 			{
+				Log.Debug($"spawning {ply.Nickname} as Guard");
 				ply.SetRole(RoleType.FacilityGuard);
+				Log.Debug("spawned", Config.ShowDebug);
 			}
 
 			// ---------------------------------------------------------------------------------------\\
@@ -317,7 +336,9 @@ namespace CustomSpawner
 				RoleType role = Roles[Random.Range(0, Roles.Count)];
 				Roles.Remove(role);
 
+				Log.Debug($"spawning {ply.Nickname} as scp {role.ToString()}", Config.ShowDebug);
 				ply.SetRole(role);
+				Log.Debug("spawned", Config.ShowDebug);
 			}
 
 			Timing.CallDelayed(1f, () =>
