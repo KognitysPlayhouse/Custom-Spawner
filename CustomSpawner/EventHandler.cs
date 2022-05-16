@@ -304,61 +304,66 @@ namespace CustomSpawner
 			}
 			Log.Debug($"Filled blanks: Players (SCP/CD/SC/MTF): {SCPPlayers.Count()}, {ClassDPlayers.Count()}, {ScientistPlayers.Count()}, {GuardPlayers.Count()}", Config.ShowDebug);
 			// ---------------------------------------------------------------------------------------\\
-
 			// Okay we have the list! Time to spawn everyone in, we'll leave SCP for last as it has a bit of logic.
-			foreach (Player ply in PlayersToSpawnAsClassD)
+
+			Timing.CallDelayed(2f, () =>
 			{
-				Log.Debug($"spawning {ply.Nickname} as CD", Config.ShowDebug);
-				ply.SetRole(RoleType.ClassD);
-				Log.Debug("spawned", Config.ShowDebug);
-			}
-			foreach (Player ply in PlayersToSpawnAsScientist)
-			{
-				Log.Debug($"spawning {ply.Nickname} as SC", Config.ShowDebug);
-				ply.SetRole(RoleType.Scientist);
-				Log.Debug("spawned", Config.ShowDebug);
-			}
-			foreach (Player ply in PlayersToSpawnAsGuard)
-			{
-				Log.Debug($"spawning {ply.Nickname} as Guard");
-				ply.SetRole(RoleType.FacilityGuard);
-				Log.Debug("spawned", Config.ShowDebug);
-			}
+				foreach (Player ply in PlayersToSpawnAsClassD)
+				{
+					Log.Debug($"spawning {ply.Nickname} as CD", Config.ShowDebug);
+					ply.SetRole(RoleType.ClassD);
+					Log.Debug("spawned", Config.ShowDebug);
+				}
 
-			// ---------------------------------------------------------------------------------------\\
+				foreach (Player ply in PlayersToSpawnAsScientist)
+				{
+					Log.Debug($"spawning {ply.Nickname} as SC", Config.ShowDebug);
+					ply.SetRole(RoleType.Scientist);
+					Log.Debug("spawned", Config.ShowDebug);
+				}
 
-			// SCP Logic, preventing SCP-079 from spawning if there isn't at least 2 other SCPs
-			List<RoleType> Roles = new List<RoleType>
-				{ RoleType.Scp049, RoleType.Scp096, RoleType.Scp106, RoleType.Scp173, RoleType.Scp93953, RoleType.Scp93989 };
+				foreach (Player ply in PlayersToSpawnAsGuard)
+				{
+					Log.Debug($"spawning {ply.Nickname} as Guard");
+					ply.SetRole(RoleType.FacilityGuard);
+					Log.Debug("spawned", Config.ShowDebug);
+				}
 
-			if (PlayersToSpawnAsSCP.Count > 2)
-				Roles.Add(RoleType.Scp079);
+				// ---------------------------------------------------------------------------------------\\
 
-			foreach (Player ply in PlayersToSpawnAsSCP)
-			{
-				RoleType role = Roles[Random.Range(0, Roles.Count)];
-				Roles.Remove(role);
+				// SCP Logic, preventing SCP-079 from spawning if there isn't at least 2 other SCPs
+				List<RoleType> Roles = new List<RoleType>
+				{
+					RoleType.Scp049, RoleType.Scp096, RoleType.Scp106, RoleType.Scp173, RoleType.Scp93953,
+					RoleType.Scp93989
+				};
 
-				Log.Debug($"spawning {ply.Nickname} as scp {role.ToString()}", Config.ShowDebug);
-				ply.SetRole(role);
-				Log.Debug("spawned", Config.ShowDebug);
-			}
+				if (PlayersToSpawnAsSCP.Count > 2)
+					Roles.Add(RoleType.Scp079);
 
-			Timing.CallDelayed(1f, () =>
-			{
-				Round.IsLocked = false;
+				foreach (Player ply in PlayersToSpawnAsSCP)
+				{
+					RoleType role = Roles[Random.Range(0, Roles.Count)];
+					Roles.Remove(role);
+
+					Log.Debug($"spawning {ply.Nickname} as scp {role.ToString()}", Config.ShowDebug);
+					ply.SetRole(role);
+					Log.Debug("spawned", Config.ShowDebug);
+				}
+
+				Timing.CallDelayed(1f, () => { Round.IsLocked = false; });
+
+				// I will come back to this later
+				/*
+				var test = new RoundSummary.SumInfo_ClassList // Still don't know if this does anything
+				{
+					class_ds = ClassDsToSpawn,
+					scientists = ScientistsToSpawn,
+					scps_except_zombies = SCPsToSpawn,
+					mtf_and_guards = GuardsToSpawn
+				};
+				RoundSummary.singleton.SetStartClassList(test);*/
 			});
-
-			// I will come back to this later
-			/*
-			var test = new RoundSummary.SumInfo_ClassList // Still don't know if this does anything
-			{
-				class_ds = ClassDsToSpawn,
-				scientists = ScientistsToSpawn,
-				scps_except_zombies = SCPsToSpawn,
-				mtf_and_guards = GuardsToSpawn
-			};
-			RoundSummary.singleton.SetStartClassList(test);*/
 		}
 
 		public void OnWaitingForPlayers()
