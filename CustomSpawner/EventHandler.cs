@@ -87,6 +87,7 @@ namespace CustomSpawner
 			RoundStarted = true;
 			foreach (var thing in Dummies)
 			{
+				DummiesManager.dummies.Remove(thing);
 				UnityEngine.Object.Destroy(thing); // Deleting the dummies and SCP-018 circles
 			}
 			if (lobbyTimer.IsRunning)
@@ -397,7 +398,7 @@ namespace CustomSpawner
 			foreach (var Role in dummiesToSpawn)
 			{
 				GameObject obj = UnityEngine.Object.Instantiate(
-					LiteNetLib4MirrorNetworkManager.singleton.playerPrefab);
+					NetworkManager.singleton.playerPrefab);
 				CharacterClassManager ccm = obj.GetComponent<CharacterClassManager>();
 				if (ccm == null)
 					Log.Error("CCM is null, this can cause problems!");
@@ -414,6 +415,7 @@ namespace CustomSpawner
 
 				NetworkServer.Spawn(obj);
 				Dummies.Add(obj);
+				DummiesManager.dummies.Add(obj, obj.GetComponent<ReferenceHub>());
 				
 				var pickup = Item.Create(ItemType.SCP018).Spawn(dummySpawnPointsAndRotations[Role.Key].Key);
 				GameObject gameObject = pickup.Base.gameObject;

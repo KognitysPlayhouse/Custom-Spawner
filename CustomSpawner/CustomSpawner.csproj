@@ -66,6 +66,9 @@
     <Reference Include="Mirror">
       <HintPath>..\..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\SCP Secret Laboratory Dedicated Server\SCPSL_Data\Managed\Mirror.dll</HintPath>
     </Reference>
+    <Reference Include="NorthwoodLib">
+      <HintPath>..\..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\SCP Secret Laboratory Dedicated Server\SCPSL_Data\Managed\NorthwoodLib.dll</HintPath>
+    </Reference>
     <Reference Include="SemVer">
       <HintPath>..\..\..\..\..\AppData\Roaming\EXILED\Plugins\dependencies\SemVer.dll</HintPath>
     </Reference>
@@ -94,6 +97,7 @@
     <Compile Include="Configs.cs" />
     <Compile Include="CustomSpawner.cs" />
     <Compile Include="EventHandler.cs" />
+    <Compile Include="Patches\On173Update.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
