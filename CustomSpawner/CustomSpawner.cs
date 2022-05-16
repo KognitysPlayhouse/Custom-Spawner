@@ -27,6 +27,7 @@ namespace CustomSpawner
 
 			Exiled.Events.Handlers.Player.Verified += Handler.OnVerified;
 			Exiled.Events.Handlers.Server.RoundStarted += Handler.OnRoundStart;
+			Exiled.Events.Handlers.Server.RoundEnded += Handler.OnRoundEnd;
 			Exiled.Events.Handlers.Server.WaitingForPlayers += Handler.OnWaitingForPlayers;
 			Exiled.Events.Handlers.Player.PickingUpItem += Handler.OnPickingUp;
 

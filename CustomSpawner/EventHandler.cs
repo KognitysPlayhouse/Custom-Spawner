@@ -55,6 +55,8 @@ namespace CustomSpawner
 			{ RoleType.ClassD, new KeyValuePair<Vector3, Quaternion>(ClassDPoint, Quaternion.Euler(0, 340f, 0) ) },
 		};
 
+		private bool RoundStarted = false;
+		
 		public void OnPickingUp(PickingUpItemEventArgs ev)
 		{
 			if (boll.Contains(ev.Pickup))
@@ -69,8 +71,6 @@ namespace CustomSpawner
 				{
 					ev.Player.IsOverwatchEnabled = false;
 					ev.Player.SetRole(RoleType.Tutorial);
-					Scp096.TurnedPlayers.Add(ev.Player);
-					Scp173.TurnedPlayers.Add(ev.Player);
 				});
 
 				Timing.CallDelayed(1f, () =>
@@ -82,6 +82,9 @@ namespace CustomSpawner
 
 		public void OnRoundStart()
 		{
+			if(RoundStarted)
+				return;
+			RoundStarted = true;
 			foreach (var thing in Dummies)
 			{
 				UnityEngine.Object.Destroy(thing); // Deleting the dummies and SCP-018 circles
@@ -356,12 +359,6 @@ namespace CustomSpawner
 				mtf_and_guards = GuardsToSpawn
 			};
 			RoundSummary.singleton.SetStartClassList(test);*/
-
-			Timing.CallDelayed(3, () =>
-			{
-				Scp096.TurnedPlayers.Clear();
-				Scp173.TurnedPlayers.Clear();
-			});
 		}
 
 		public void OnWaitingForPlayers()
@@ -528,6 +525,11 @@ namespace CustomSpawner
 				x++;
 				yield return Timing.WaitForSeconds(1f);
 			}
+		}
+
+		public void OnRoundEnd(RoundEndedEventArgs ev)
+		{
+			RoundStarted = false;
 		}
 	}
 }
