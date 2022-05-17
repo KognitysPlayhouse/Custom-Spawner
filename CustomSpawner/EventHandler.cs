@@ -71,6 +71,8 @@ namespace CustomSpawner
 				{
 					ev.Player.IsOverwatchEnabled = false;
 					ev.Player.SetRole(RoleType.Tutorial);
+					Scp096.TurnedPlayers.Add(ev.Player);
+					Scp173.TurnedPlayers.Add(ev.Player);
 				});
 
 				Timing.CallDelayed(1f, () =>
@@ -352,7 +354,12 @@ namespace CustomSpawner
 					Log.Debug("spawned", Config.ShowDebug);
 				}
 
-				Timing.CallDelayed(1f, () => { Round.IsLocked = false; });
+				Timing.CallDelayed(1f, () =>
+				{
+					Round.IsLocked = false;
+					Scp096.TurnedPlayers.Clear();
+					Scp173.TurnedPlayers.Clear();
+				});
 
 				// I will come back to this later
 				/*
